@@ -17,8 +17,12 @@ class IdmlStorySources
   end
 
   # Returns array of story sources
-  def to_a
-    @stories.keys.map { |e| get_stories(e).to_s }
+  def stories
+    story_names.map { |e| get_stories(e).to_s }
+  end
+
+  def story_names
+    @stories.keys
   end
 
   def read_story_filenames
@@ -61,8 +65,9 @@ post '/upload' do
     @error = "Please select a file to upload."
     return erb :index
   end
-  @idml_story_sources = IdmlStorySources.new(tmpfile).to_a
-  @highlit_story_sources = @idml_story_sources.map { |e|
+  @idml_story_sources = IdmlStorySources.new(tmpfile)
+  @story_names = @idml_story_sources.story_names
+  @highlit_story_sources = @idml_story_sources.stories.map { |e|
     CodeRay.scan(e, :xml).div(:line_numbers => :table, :css => :class)
   }
   erb :show_source

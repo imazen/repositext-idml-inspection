@@ -6,9 +6,15 @@
 
   <a href="/">Upload another IDML file</a>
 
-  <% @highlit_story_sources.each do |e| %>
-    <div style="margin: 2em 0;">
-      <%= e %>
+  <h3>Stories</h3>
+  <ol>
+    <% @story_names.each_with_index do |story_name, i| %>
+      <li><a href="#story-<%= i+1 %>"><%= story_name %></a></li>
+    <% end %>
+  </ol>
+  <% @highlit_story_sources.each_with_index do |story, i| %>
+    <div style="margin: 2em 0;" id="story-<%= i+1 %>">
+      <%= story %>
     </div>
   <% end %>
 
