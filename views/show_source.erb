@@ -1,0 +1,17 @@
+<% if @error %>
+  <%= @error %>
+<% else %>
+
+  <h1>IDML stories in file &quot;<%= @idml_file_name %>&quot;</h1>
+
+  <a href="/">Upload another IDML file</a>
+
+  <% @highlit_story_sources.each do |e| %>
+    <div style="margin: 2em 0;">
+      <%= e %>
+    </div>
+  <% end %>
+
+  <a href="/">Upload another IDML file</a>
+
+<% end %>
