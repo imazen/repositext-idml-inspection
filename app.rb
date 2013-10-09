@@ -7,24 +7,22 @@ require 'json'
 require 'zip'
 
 # Class for showing IDML file's raw source
-class IdmlStorySources
+class IdmlStories
 
-  # Initializes an instance of self
+  # Initializes an instance of self given an idml_file
   # @param[File] idml_file
   def initialize(idml_file)
     @idml_file = idml_file
     read_story_filenames
   end
 
-  # Returns array of story sources
+  # Returns array of story objects
+  # @return[Array<OpenStruct>] See #get_story for details.
   def stories
-    story_names.map { |e| get_stories(e).to_s }
+    @stories.keys.each_with_index.map { |story_name, i| get_story(story_name, i) }
   end
 
-  def story_names
-    @stories.keys
-  end
-
+  # Extracts the story filenames from @idml_file into the @stories hash
   def read_story_filenames
     @stories = {}
     Zip::File.open(@idml_file.path, false) do |zip|
@@ -41,12 +39,28 @@ class IdmlStorySources
     end
   end
 
-  def get_stories(name)
-    Zip::File.open(@idml_file.path, false) do |zip|
+  # Returns a story object with the following properties:
+  #     * name
+  #     * body (raw xml source)
+  #     * body_as_html (xml source with html syntax highlighting)
+  #     * length - number of characters in body
+  def get_story(name, index)
+    body = Zip::File.open(@idml_file.path, false) do |zip|
       story_data = zip.get_entry(@stories[name]).get_input_stream.read
       story_xml = Nokogiri::XML(story_data) {|cfg| cfg.noblanks}
-      story_xml.xpath('/idPkg:Story/Story')
+      story_xml.xpath('/idPkg:Story/Story').to_s
     end
+    OpenStruct.new(
+      :name => name,
+      :body => body,
+      :body_as_html => CodeRay.scan(body, :xml) \
+                              .div(
+                                :line_numbers => :table,
+                                :css => :class,
+                                :line_number_anchors => "story_#{ index+1 }_line_"
+                              ),
+     :length => body.length
+    )
   end
 
 end
@@ -65,10 +79,6 @@ post '/upload' do
     @error = "Please select a file to upload."
     return erb :index
   end
-  @idml_story_sources = IdmlStorySources.new(tmpfile)
-  @story_names = @idml_story_sources.story_names
-  @highlit_story_sources = @idml_story_sources.stories.map { |e|
-    CodeRay.scan(e, :xml).div(:line_numbers => :table, :css => :class)
-  }
+  @idml_stories = IdmlStories.new(tmpfile).stories
   erb :show_source
 end

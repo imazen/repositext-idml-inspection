@@ -8,13 +8,17 @@
 
   <h3>Stories</h3>
   <ol>
-    <% @story_names.each_with_index do |story_name, i| %>
-      <li><a href="#story-<%= i+1 %>"><%= story_name %></a></li>
+    <% @idml_stories.each_with_index do |story, i| %>
+      <li>
+        <a href="#story-<%= i+1 %>"><%= story.name %></a>
+        (<%= story.length %> characters)
+      </li>
     <% end %>
   </ol>
-  <% @highlit_story_sources.each_with_index do |story, i| %>
+  <% @idml_stories.each_with_index do |story, i| %>
     <div style="margin: 2em 0;" id="story-<%= i+1 %>">
-      <%= story %>
+      <h3><%= story.name %></h3>
+      <%= story.body_as_html %>
     </div>
   <% end %>
 
